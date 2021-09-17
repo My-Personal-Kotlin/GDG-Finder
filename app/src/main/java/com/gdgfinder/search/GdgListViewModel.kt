@@ -1,18 +1,21 @@
 package com.gdgfinder.search
 
+import android.app.Application
+import android.content.Context
 import android.location.Location
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.util.Log
-import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.annotation.RequiresApi
+import androidx.lifecycle.*
 import com.gdgfinder.network.GdgApi
 import com.gdgfinder.network.GdgChapter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.IOException
+import java.lang.Exception
 
 
 class GdgListViewModel: ViewModel() {
@@ -35,35 +38,41 @@ class GdgListViewModel: ViewModel() {
     val showNeedLocation: LiveData<Boolean>
         get() = _showNeedLocation
 
+    private val _checkNetworkConnection = MutableLiveData<Boolean>(false)
+    val checkNetworkConnection : LiveData<Boolean>
+        get() = _checkNetworkConnection
+
     init {
         // process the initial filter
         onQueryChanged()
 
-        viewModelScope.launch {
-            delay(5_000)
-            _showNeedLocation.value = !repository.isFullyInitialized
-        }
     }
 
     private fun onQueryChanged() {
-        currentJob?.cancel() // if a previous query is running cancel it before starting another
-        currentJob = viewModelScope.launch {
-            try {
-                // this will run on a thread managed by Retrofit
-                _gdgList.value = repository.getChaptersForFilter(filter.currentValue) // return list
-                Log.v("Checku returned", _gdgList.value!!.get(0).toString())
-                Log.v("Checku FILTER", repository.getFilters().toString())
-                repository.getFilters().let {
-                    // only update the filters list if it's changed since the last time
-                    if (it != _regionList.value) {
-                        _regionList.value = it
-
+        try {
+            currentJob?.cancel() // if a previous query is running cancel it before starting another
+            currentJob = viewModelScope.launch {
+                try {
+                    // this will run on a thread managed by Retrofit
+                    _gdgList.value = repository.getChaptersForFilter(filter.currentValue) // return list
+                    Log.v("Checku returned", _gdgList.value!!.get(0).toString())
+                    Log.v("Checku FILTER", repository.getFilters().toString())
+                    repository.getFilters().let {
+                        // only update the filters list if it's changed since the last time
+                        if (it != _regionList.value) {
+                            _regionList.value = it
+                        }
                     }
+                    Log.v("Checku AFTER FILTER", _regionList.value.toString())
+
+                } catch (e: Exception) {
+                    _gdgList.value = listOf()
+                    Log.v("Checku",e.message.toString())
+                    Log.v("Checku",e.localizedMessage+"\n"+e.printStackTrace())
                 }
-                Log.v("Checku AFTER FILTER", _regionList.value.toString())
-            } catch (e: IOException) {
-                _gdgList.value = listOf()
             }
+        }catch (t:Throwable){
+            Log.v("Checku throwable",t.message.toString())
         }
     }
 
@@ -95,6 +104,24 @@ class GdgListViewModel: ViewModel() {
             }
             return false
         }
+    }
+
+    fun initializeToCheckLocationEnabledOrNot(){
+        viewModelScope.launch {
+            delay(5_000)
+            _showNeedLocation.value = !repository.isFullyInitialized
+        }
+    }
+
+    fun internetConnected(){
+        _checkNetworkConnection.value = true
+    }
+    fun internetNotConnected(){
+        _checkNetworkConnection.value = false
+    }
+    override fun onCleared() {
+        super.onCleared()
+        currentJob?.cancel()
     }
 }
 

@@ -1,16 +1,22 @@
 package com.gdgfinder.search
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -24,6 +30,11 @@ private const val LOCATION_PERMISSION = "android.permission.ACCESS_FINE_LOCATION
 
 class GdgListFragment : Fragment() {
 
+    val Context.isConnected: Boolean
+        get() {
+            return (getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
+                .activeNetworkInfo?.isConnected == true
+        }
 
     private val viewModel: GdgListViewModel by lazy {
         ViewModelProvider(this).get(GdgListViewModel::class.java)
@@ -38,6 +49,13 @@ class GdgListFragment : Fragment() {
 
         // Giving the binding access to the OverviewViewModel
         binding.viewModel = viewModel
+
+        viewModel.checkNetworkConnection.observe(viewLifecycleOwner, Observer {
+            if(it == false){
+                Snackbar.make(binding.root, "No Network Connection", Snackbar.LENGTH_SHORT)
+                    .show()
+            }
+        })
 
         val adapter = GdgListAdapter(GdgClickListener { chapter ->
             val destination = Uri.parse(chapter.website)
@@ -93,10 +111,17 @@ class GdgListFragment : Fragment() {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        requestLastLocationOrStartLocationUpdates()
+        if(context?.let { isOnline(it.applicationContext) } == true) {
+            requestLastLocationOrStartLocationUpdates()
+            viewModel.initializeToCheckLocationEnabledOrNot()
+            viewModel.internetConnected()
+        }else{
+            viewModel.internetNotConnected()
+        }
 
     }
 
@@ -188,6 +213,29 @@ class GdgListFragment : Fragment() {
 //            }
 //        }
 //    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun isOnline(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (connectivityManager != null) {
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            if (capabilities != null) {
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                    return true
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                    return true
+                }
+            }
+        }
+        return false
+    }
 }
 
 

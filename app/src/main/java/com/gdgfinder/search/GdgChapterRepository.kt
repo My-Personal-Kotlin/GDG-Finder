@@ -7,6 +7,7 @@ import com.gdgfinder.network.GdgChapter
 import com.gdgfinder.network.GdgResponse
 import com.gdgfinder.network.LatLong
 import kotlinx.coroutines.*
+import java.lang.Exception
 
 
 class GdgChapterRepository(gdgApiService: GdgApiService) {
@@ -38,11 +39,11 @@ class GdgChapterRepository(gdgApiService: GdgApiService) {
      * This works by first waiting for any previously in-progress sorts, and if a sort has not yet started
      * it will start a new sort (which may happen if location is disabled on the device)
      */
-    suspend fun getChaptersForFilter(filter: String?): List<GdgChapter> {
+    suspend fun getChaptersForFilter(filter: String?): List<GdgChapter>? {
 
         val data = sortedData()
 
-        return when(filter) {
+        return when (filter) {
             null -> data.chapters
             else -> data.chaptersByRegion.getOrElse(filter) {
                 emptyList()
