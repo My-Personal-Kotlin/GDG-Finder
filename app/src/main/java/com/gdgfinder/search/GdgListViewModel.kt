@@ -22,16 +22,14 @@ class GdgListViewModel: ViewModel() {
     private var currentJob: Job? = null
 
     private val _gdgList = MutableLiveData<List<GdgChapter>>()
-    private val _regionList = MutableLiveData<List<String>>()
-    private val _showNeedLocation = MutableLiveData<Boolean>()
-
-    // The external LiveData interface to the property is immutable, so only this class can modify
     val gdgList: LiveData<List<GdgChapter>>
         get() = _gdgList
 
+    private val _regionList = MutableLiveData<List<String>>()
     val regionList: LiveData<List<String>>
         get() = _regionList
 
+    private val _showNeedLocation = MutableLiveData<Boolean>()
     val showNeedLocation: LiveData<Boolean>
         get() = _showNeedLocation
 
