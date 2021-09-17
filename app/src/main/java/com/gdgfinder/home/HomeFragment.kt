@@ -20,10 +20,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var viewModel: HomeViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         val binding = HomeFragmentBinding.inflate(inflater)
 
@@ -31,8 +28,8 @@ class HomeFragment : Fragment() {
 
         binding.viewModel = viewModel
 
-        viewModel.navigateToSearch.observe(viewLifecycleOwner,
-            Observer<Boolean> { shouldNavigate ->
+        viewModel.navigateToSearch.observe(viewLifecycleOwner, Observer<Boolean> {
+                shouldNavigate ->
                 if (shouldNavigate == true) {
                     val navController = binding.root.findNavController()
                     navController.navigate(R.id.action_homeFragment_to_gdgListFragment)

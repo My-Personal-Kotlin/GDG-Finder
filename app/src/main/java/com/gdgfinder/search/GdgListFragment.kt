@@ -1,5 +1,6 @@
 package com.gdgfinder.search
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -17,8 +19,6 @@ import com.gdgfinder.databinding.FragmentGdgListBinding
 import com.google.android.gms.location.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
-
-private const val LOCATION_PERMISSION_REQUEST = 1
 
 private const val LOCATION_PERMISSION = "android.permission.ACCESS_FINE_LOCATION"
 
@@ -29,8 +29,8 @@ class GdgListFragment : Fragment() {
         ViewModelProvider(this).get(GdgListViewModel::class.java)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+
         val binding = FragmentGdgListBinding.inflate(inflater)
 
         // Allows Data Binding to Observe LiveData with the lifecycle of this Fragment
@@ -62,12 +62,14 @@ class GdgListFragment : Fragment() {
 
         viewModel.regionList.observe(viewLifecycleOwner, object: Observer<List<String>> {
             override fun onChanged(data: List<String>?) {
+
                 data ?: return
 
                 val chipGroup = binding.regionList
                 val inflator = LayoutInflater.from(chipGroup.context)
 
                 val children = data.map { regionName ->
+
                     val chip = inflator.inflate(R.layout.region, chipGroup, false) as Chip
                     chip.text = regionName
                     chip.tag = regionName
@@ -75,6 +77,7 @@ class GdgListFragment : Fragment() {
                         viewModel.onFilterChanged(button.tag as String, isChecked)
                     }
                     chip
+
                 }
 
                 chipGroup.removeAllViews()
@@ -84,7 +87,9 @@ class GdgListFragment : Fragment() {
                 }
             }
         })
+
         setHasOptionsMenu(true)
+
         return binding.root
     }
 
@@ -92,13 +97,32 @@ class GdgListFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         requestLastLocationOrStartLocationUpdates()
+
     }
+
+    private val permissionRequestLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val granted = permissions.entries.all {
+                it.value == true
+            }
+            if (granted) {
+                requestLastLocationOrStartLocationUpdates()
+            }
+        }
 
     /**
      * Show the user a dialog asking for permission to use location.
      */
     private fun requestLocationPermission() {
-        requestPermissions(arrayOf(LOCATION_PERMISSION), LOCATION_PERMISSION_REQUEST)
+
+        var PERMISSIONS = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+
+        permissionRequestLauncher.launch(PERMISSIONS)
+        // Depricated
+     //   requestPermissions(arrayOf(LOCATION_PERMISSION), LOCATION_PERMISSION_REQUEST)
     }
 
     /**
@@ -134,32 +158,36 @@ class GdgListFragment : Fragment() {
             return
         }
 
+        val request = LocationRequest.create().setPriority(LocationRequest.PRIORITY_LOW_POWER)
 
-        val request = LocationRequest().setPriority(LocationRequest.PRIORITY_LOW_POWER)
         val callback = object: LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 val location = locationResult?.lastLocation ?: return
                 viewModel.onLocationUpdated(location)
             }
         }
+
         fusedLocationClient.requestLocationUpdates(request, callback, null)
     }
 
+    //
+    //      Depricated
+    //
     /**
      * This will be called by Android when the user responds to the permission request.
      *
      * If granted, continue with the operation that the user gave us permission to do.
      */
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode) {
-            LOCATION_PERMISSION_REQUEST -> {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    requestLastLocationOrStartLocationUpdates()
-                }
-            }
-        }
-    }
+//    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        when(requestCode) {
+//            LOCATION_PERMISSION_REQUEST -> {
+//                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    requestLastLocationOrStartLocationUpdates()
+//                }
+//            }
+//        }
+//    }
 }
 
 

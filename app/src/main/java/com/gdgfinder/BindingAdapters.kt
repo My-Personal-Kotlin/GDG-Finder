@@ -11,7 +11,9 @@ import com.gdgfinder.search.GdgListAdapter
  */
 @BindingAdapter("listData")
 fun bindRecyclerView(recyclerView: RecyclerView, data: List<GdgChapter>?) {
+
     val adapter = recyclerView.adapter as GdgListAdapter
+
     adapter.submitList(data) {
         // scroll the list to the top after the diffs are calculated and posted
         recyclerView.scrollToPosition(0)

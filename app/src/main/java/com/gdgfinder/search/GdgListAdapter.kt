@@ -11,33 +11,6 @@ import com.gdgfinder.network.GdgChapter
 
 
 class GdgListAdapter(val clickListener: GdgClickListener): ListAdapter<GdgChapter, GdgListViewHolder>(DiffCallback){
-    companion object DiffCallback : DiffUtil.ItemCallback<GdgChapter>() {
-        override fun areItemsTheSame(oldItem: GdgChapter, newItem: GdgChapter): Boolean {
-            return oldItem === newItem
-        }
-
-        override fun areContentsTheSame(oldItem: GdgChapter, newItem: GdgChapter): Boolean {
-            return oldItem == newItem
-        }
-    }
-
-    class GdgListViewHolder(private var binding: ListItemBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bind(listener: GdgClickListener, gdgChapter: GdgChapter) {
-            binding.chapter = gdgChapter
-            binding.clickListener = listener
-            // This is important, because it forces the data binding to execute immediately,
-            // which allows the RecyclerView to make the correct view size measurements
-            binding.executePendingBindings()
-        }
-
-        companion object {
-            fun from(parent: ViewGroup): GdgListViewHolder {
-                val layoutInflater = LayoutInflater.from(parent.context)
-                val binding = ListItemBinding.inflate(layoutInflater, parent, false)
-                return GdgListViewHolder(binding)
-            }
-        }
-    }
 
     /**
      * Part of the RecyclerView adapter, called when RecyclerView needs a new [ViewHolder].
@@ -59,6 +32,39 @@ class GdgListAdapter(val clickListener: GdgClickListener): ListAdapter<GdgChapte
     override fun onBindViewHolder(holder: GdgListViewHolder, position: Int) {
         holder.bind(clickListener, getItem(position))
     }
+
+    class GdgListViewHolder(private var binding: ListItemBinding): RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(listener: GdgClickListener, gdgChapter: GdgChapter) {
+
+            binding.chapter = gdgChapter
+
+            binding.clickListener = listener
+            // This is important, because it forces the data binding to execute immediately,
+            // which allows the RecyclerView to make the correct view size measurements
+            binding.executePendingBindings()
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): GdgListViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = ListItemBinding.inflate(layoutInflater, parent, false)
+                return GdgListViewHolder(binding)
+            }
+        }
+    }
+
+
+    companion object DiffCallback : DiffUtil.ItemCallback<GdgChapter>() {
+        override fun areItemsTheSame(oldItem: GdgChapter, newItem: GdgChapter): Boolean {
+            return oldItem === newItem
+        }
+
+        override fun areContentsTheSame(oldItem: GdgChapter, newItem: GdgChapter): Boolean {
+            return oldItem == newItem
+        }
+    }
+
 }
 
 class GdgClickListener(val clickListener: (chapter: GdgChapter) -> Unit) {

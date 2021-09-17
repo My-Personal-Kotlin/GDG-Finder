@@ -1,6 +1,7 @@
 package com.gdgfinder.search
 
 import android.location.Location
+import android.util.Log
 import com.gdgfinder.network.GdgApiService
 import com.gdgfinder.network.GdgChapter
 import com.gdgfinder.network.GdgResponse
@@ -14,7 +15,7 @@ class GdgChapterRepository(gdgApiService: GdgApiService) {
      * A single network request, the results won't change. For this lesson we did not add an offline cache for simplicity
      * and the result will be cached in memory.
      */
-    private val request = gdgApiService.getChapters()
+    private val request = gdgApiService
 
     /**
      * An in-progress (or potentially completed) sort, this may be null or cancelled at any time.
@@ -38,10 +39,14 @@ class GdgChapterRepository(gdgApiService: GdgApiService) {
      * it will start a new sort (which may happen if location is disabled on the device)
      */
     suspend fun getChaptersForFilter(filter: String?): List<GdgChapter> {
+
         val data = sortedData()
+
         return when(filter) {
             null -> data.chapters
-            else -> data.chaptersByRegion.getOrElse(filter) { emptyList() }
+            else -> data.chaptersByRegion.getOrElse(filter) {
+                emptyList()
+            }
         }
     }
 
@@ -85,14 +90,19 @@ class GdgChapterRepository(gdgApiService: GdgApiService) {
      * @return the result of the started sort
      */
     private suspend fun doSortData(location: Location? = null): SortedData {
+
         // since we'll need to launch a new coroutine for the sorting use coroutineScope.
         // coroutineScope will automatically wait for anything started via async {} or await{} in it's block to
         // complete.
         val result = coroutineScope {
             // launch a new coroutine to do the sort (so other requests can wait for this sort to complete)
-            val deferred = async { SortedData.from(request.await(), location) }
+            val deferred = async {
+                SortedData.from(request.getChapters(), location)
+            }
+
             // cache the Deferred so any future requests can wait for this sort
             inProgressSort = deferred
+
             // and return the result of this sort
             deferred.await()
         }
@@ -129,9 +139,9 @@ class GdgChapterRepository(gdgApiService: GdgApiService) {
      * only be called by [doSortData].
      */
     private class SortedData private constructor(
-        val chapters: List<GdgChapter>,
-        val filters: List<String>,
-        val chaptersByRegion: Map<String, List<GdgChapter>>
+        val chapters: List<GdgChapter>, // overall chapter/data LIST
+        val filters: List<String>, // Unique Regions list
+        val chaptersByRegion: Map<String, List<GdgChapter>> // groupBy Regions LIST
     ) {
 
         companion object {
@@ -145,11 +155,18 @@ class GdgChapterRepository(gdgApiService: GdgApiService) {
                 return withContext(Dispatchers.Default) {
                     // this sorting is too expensive to do on the main thread, so do thread confinement here.
                     val chapters: List<GdgChapter> = response.chapters.sortByDistanceFrom(location)
+                    Log.v("Checku chapters", chapters.get(0).toString())
                     // use distinctBy which will maintain the input order - this will have the effect of making
                     // a filter list sorted by the distance from the current location
-                    val filters: List<String> = chapters.map { it.region } .distinctBy { it }
+                    val filters: List<String> = chapters.map {
+                            it.region
+                        } .distinctBy {
+                            it
+                        }
+                    Log.v("Checku filters", filters.get(0))
                     // group the chapters by region so that filter queries don't require any work
                     val chaptersByRegion: Map<String, List<GdgChapter>> = chapters.groupBy { it.region }
+                    Log.v("Checku chaptersByRegion", chaptersByRegion.entries.toString())
                     // return the sorted result
                     SortedData(chapters, filters, chaptersByRegion)
                 }
@@ -163,9 +180,12 @@ class GdgChapterRepository(gdgApiService: GdgApiService) {
              * @param currentLocation returned list will be sorted by the distance, or unsorted if null
              */
             private fun List<GdgChapter>.sortByDistanceFrom(currentLocation: Location?): List<GdgChapter> {
+
                 currentLocation ?: return this
 
-                return sortedBy { distanceBetween(it.geo, currentLocation)}
+                return sortedBy {
+                    distanceBetween(it.geo, currentLocation)
+                }
             }
 
             /**

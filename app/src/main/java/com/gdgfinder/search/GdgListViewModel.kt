@@ -1,6 +1,8 @@
 package com.gdgfinder.search
 
 import android.location.Location
+import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -48,13 +50,17 @@ class GdgListViewModel: ViewModel() {
         currentJob = viewModelScope.launch {
             try {
                 // this will run on a thread managed by Retrofit
-                _gdgList.value = repository.getChaptersForFilter(filter.currentValue)
+                _gdgList.value = repository.getChaptersForFilter(filter.currentValue) // return list
+                Log.v("Checku returned", _gdgList.value!!.get(0).toString())
+                Log.v("Checku FILTER", repository.getFilters().toString())
                 repository.getFilters().let {
                     // only update the filters list if it's changed since the last time
                     if (it != _regionList.value) {
                         _regionList.value = it
+
                     }
                 }
+                Log.v("Checku AFTER FILTER", _regionList.value.toString())
             } catch (e: IOException) {
                 _gdgList.value = listOf()
             }
@@ -75,6 +81,7 @@ class GdgListViewModel: ViewModel() {
     }
 
     private class FilterHolder {
+
         var currentValue: String? = null
             private set
 

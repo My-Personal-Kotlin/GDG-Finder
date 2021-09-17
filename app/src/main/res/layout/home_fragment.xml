@@ -6,7 +6,6 @@
     <data>
         <variable name="viewModel"
             type="com.gdgfinder.home.HomeViewModel" />
-
     </data>
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -40,6 +39,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceHeadline5"
                     android:text="@string/about_google_developer_groups"
+                    android:layout_marginTop="@dimen/spacing_normal"
                     app:layout_constraintEnd_toStartOf="@+id/end_grid"
                     app:layout_constraintStart_toStartOf="@+id/start_grid"
                     app:layout_constraintTop_toBottomOf="@id/image" />

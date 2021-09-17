@@ -5,13 +5,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
         <variable
             name="viewModel"
             type="com.gdgfinder.add.AddGdgViewModel"/>
     </data>
+
     <ScrollView android:layout_height="match_parent"
         android:layout_width="match_parent">
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,11 +25,11 @@
                 android:text="@string/add_gdg"
                 android:contentDescription="@string/add_gdg"
                 app:layout_constraintStart_toStartOf="parent"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/spacing_normal"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="@dimen/spacing_normal"
                 app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="@dimen/spacing_normal"/>
 
             <ImageView
                 android:id="@+id/imageView"
@@ -36,8 +37,8 @@
                 android:layout_height="230dp"
                 tools:src="@tools:sample/avatars"
                 app:srcCompat="@drawable/behind"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="2dp"
+                android:layout_marginTop="@dimen/spacing_normal"
+                android:layout_marginBottom="@dimen/spacing_normal"
                 android:contentDescription="@string/stage_image_description"
                 app:layout_constraintTop_toBottomOf="@+id/textViewIntro"
                 app:layout_constraintStart_toStartOf="parent"
@@ -49,7 +50,6 @@
                 android:id="@+id/EditTextName"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:layout_marginTop="8dp"
                 android:hint="@string/your_name_label"
                 app:layout_constraintTop_toBottomOf="@+id/imageView"
                 app:layout_constraintStart_toStartOf="parent"
@@ -127,7 +127,7 @@
                 android:orientation="vertical"
                 app:layout_constraintStart_toStartOf="@+id/EditTextRegion"
                 app:layout_constraintEnd_toEndOf="@+id/EditTextRegion"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/spacing_normal"
                 app:layout_constraintBottom_toTopOf="@+id/button"
                 android:layout_marginBottom="8dp">
 
@@ -136,6 +136,7 @@
                     android:text="@string/motivation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textStyle="bold"
                     android:contentDescription="@string/motivation"
                     app:layout_constraintTop_toBottomOf="@+id/EditTextRegion"
                     app:layout_constraintBottom_toTopOf="@+id/EditTextWhy"
@@ -164,7 +165,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:accessibilityLiveRegion="polite"
                 app:layout_constraintTop_toBottomOf="@+id/contentGroup"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/spacing_normal"
+                android:layout_marginTop="@dimen/spacing_normal"
                 android:layout_marginEnd="40dp"
                 android:onClick="@{() -> viewModel.onSubmitApplication()}"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
